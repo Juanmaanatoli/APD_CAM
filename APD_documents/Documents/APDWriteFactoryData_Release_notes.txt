@@ -1,0 +1,18 @@
+APDWriteFactoryData Release notes
+============================
+
+V1.0.2 changes, 2017-04-05
+--------------------------
+
+- Updated usage display
+- Accepts -filename, -apd, -apd10g parameters as well
+- Can execute from any directory
+
+
+V1.0.1 changes, 2017-03-21
+--------------------------
+
+- First fully functioning version with APDCAM-1G
+
+
+

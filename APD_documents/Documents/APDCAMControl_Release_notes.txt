@@ -1,0 +1,78 @@
+APDCAMControl Release notes
+============================
+
+V1.1 changes, 2017-06-01
+--------------------------
+
+- Implemented data saving capability after measurement, if some error happened
+  during saving or data saving was not enabled before measurement
+
+
+V1.0 changes, 2017-05-31
+--------------------------
+
+- Data saving path displayed
+- Fixed power control GUI issue
+- Fixed firmware version display issue
+
+
+V0.9.7 changes, 2017-04-24
+--------------------------
+
+- Implemented Link speed check and GUI disble handling during reconnecting too.
+
+
+V0.9.6 changes, 2017-04-23
+--------------------------
+
+- Implemented Link speed check after opening camera
+- Data saving path check bug fix
+- Tabs are now disables if camera is not opened
+- More detailed message will display if measurements was not successful for some reason
+
+
+V0.9.5 changes, 2017-04-20
+--------------------------
+
+- Disabled PID control switch off functionality
+- Implemented Exit button in Menu
+
+
+V0.9.4 changes, 2017-04-11
+--------------------------
+
+- Bug fix in test pattern settings
+- Optimized Open button behaviour
+- Minor GUI fixes in Settings panel
+
+
+V0.9.3 changes, 2017-04-10
+--------------------------
+
+- Factory infos reading and displaying implemented
+
+
+V0.9.2 changes, 2017-03-20
+--------------------------
+
+- Bug fix in trigger function which crashed the application
+- Other minor fixes
+
+
+V0.9.1 changes, 2017-03-18
+--------------------------
+
+- Minor bug fix in open function
+- Implemented trigger 
+- Implemented logging
+
+
+V0.9 changes, 2016-05-31
+--------------------------
+
+- First functioning release
+- Data saving working now
+- Implemented ADc and Factroy reset
+- Plot display minor bug fixes
+
+
