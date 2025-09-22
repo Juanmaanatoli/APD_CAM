@@ -1,0 +1,287 @@
+#include "GECCommands.h"
+#include "LowlevelFunctions.h"
+//#include "helper.h"
+
+#include <iostream>
+
+#define MAX_WRITE_SIZE 4
+
+using namespace std;
+
+bool WritePDI(CAPDClient *client, unsigned char address, unsigned long subaddress, unsigned char* buffer, int noofbytes, unsigned long ip_address_h, unsigned short ip_port_h, int timeout)
+{
+	bool res = true;
+
+	CAPDFactory *factory = CAPDFactory::GetAPDFactory();
+	CClientContext *clientContext = factory->GetClientContext();
+	CEvent *event = factory->GetEvent();
+	clientContext->pEvent = event;
+	CWaitForEvents *wait = factory->GetWaitForEvents();
+	wait->Add(event);
+
+
+    int attempts=10;
+
+    clientContext->bufferLength = noofbytes;
+    clientContext->pBuffer = buffer;
+
+
+
+    do
+	{
+
+		WRITEPDI cmdw;
+        cmdw.instruction.Prepare((unsigned char)address, subaddress, buffer, noofbytes);
+
+        READPDI cmdr;
+        cmdr.instruction.Prepare(address, subaddress, (unsigned short)noofbytes);
+
+
+		BULKCMD cmd;
+		cmd.Add(cmdw);
+		cmd.Add(cmdr);
+
+		clientContext->pEvent->Reset();
+		client->SendData(&cmd, clientContext, ip_address_h, ip_port_h);
+
+		if (wait->WaitAll(timeout) != CWaitForEvents::WR_OK)
+		{
+			res = false;
+            attempts--;
+            cout <<"Write PDI: Remaining attempts:" << attempts << endl;
+
+        }
+        else
+        {
+            noofbytes-=noofbytes;
+            //cout <<"Number of bytes:" << noofbytes << endl;
+            res = true;
+        }
+
+
+    } while (noofbytes > 0 && attempts > 0);
+
+
+	delete wait;
+	delete event;
+	delete clientContext;
+
+	return res;
+}
+
+bool ReadPDI(CAPDClient *client, unsigned char address, unsigned long subaddress, unsigned char* buffer, int noofbytes, unsigned long ip_address_h, unsigned short ip_port_h, int timeout)
+{
+	bool res = true;
+
+	CAPDFactory *factory = CAPDFactory::GetAPDFactory();
+	CClientContext *clientContext = factory->GetClientContext();
+	CEvent *event = factory->GetEvent();
+	clientContext->pEvent = event;
+	CWaitForEvents *wait = factory->GetWaitForEvents();
+	wait->Add(event);
+
+    int attempts=10;
+
+	clientContext->bufferLength = noofbytes;
+	clientContext->pBuffer = buffer;
+
+    do
+    {
+
+        READPDI cmdr;
+        cmdr.instruction.Prepare(address, subaddress, (unsigned short)noofbytes);
+
+        clientContext->pEvent->Reset();
+        client->SendData(&cmdr, clientContext, ip_address_h, ip_port_h);
+
+        if (wait->WaitAll(timeout) != CWaitForEvents::WR_OK)
+        {
+            res = false;
+            attempts--;
+            cout <<"ReadPDI: Remaining attempts:" << attempts << endl;
+
+        }
+        else
+        {
+            noofbytes-=noofbytes;
+            //cout <<"Number of bytes:" << noofbytes << endl;
+            res = true;
+        }
+
+
+    } while (noofbytes > 0 && attempts > 0);
+
+
+	delete wait;
+	delete event;
+	delete clientContext;
+
+	return res;
+}
+
+
+bool SetupTS(CAPDClient *client, unsigned char channel, int packetSize, unsigned short port_h)
+{
+	bool res = true;
+
+	CAPDFactory *factory = CAPDFactory::GetAPDFactory();
+	CClientContext *clientContext = factory->GetClientContext();
+	CEvent *event = factory->GetEvent();
+	clientContext->pEvent = event;
+	CWaitForEvents *wait = factory->GetWaitForEvents();
+	wait->Add(event);
+
+	SENDTS cmd_sendTS;
+	cmd_sendTS.instruction.Prepare(channel, packetSize, port_h);
+
+	client->SendData(&cmd_sendTS, clientContext);
+
+	if (wait->WaitAll(5000) != CWaitForEvents::WR_OK)
+	{
+		res = false;
+	};
+
+	delete wait;
+	delete event;
+	delete clientContext;
+
+	return res;
+}
+
+bool SetupAllTS(CAPDClient *client, int packetsize_1, int packetsize_2, int packetsize_3, int packetsize_4, unsigned short port_h_1, unsigned short port_h_2, unsigned short port_h_3, unsigned short port_h_4)
+{
+	bool res = true;
+
+	CAPDFactory *factory = CAPDFactory::GetAPDFactory();
+	CClientContext *clientContext = factory->GetClientContext();
+	CEvent *event = factory->GetEvent();
+	clientContext->pEvent = event;
+	CWaitForEvents *wait = factory->GetWaitForEvents();
+	wait->Add(event);
+
+	SENDTS cmd_sendTS0;
+	cmd_sendTS0.instruction.Prepare(1, packetsize_1, port_h_1);
+	SENDTS cmd_sendTS1;
+	cmd_sendTS1.instruction.Prepare(2, packetsize_2, port_h_2);
+	SENDTS cmd_sendTS2;
+	cmd_sendTS2.instruction.Prepare(3, packetsize_3, port_h_3);
+	SENDTS cmd_sendTS3;
+	cmd_sendTS3.instruction.Prepare(4, packetsize_4, port_h_4);
+
+	BULKCMD cmd;
+	cmd.Add(cmd_sendTS0);
+	cmd.Add(cmd_sendTS1);
+	cmd.Add(cmd_sendTS2);
+	cmd.Add(cmd_sendTS3);
+
+	client->SendData(&cmd, clientContext);
+
+	if (wait->WaitAll(5000) != CWaitForEvents::WR_OK)
+	{
+		res = false;
+	};
+
+	delete wait;
+	delete event;
+	delete clientContext;
+
+	return res;
+}
+
+bool ShutupTS(CAPDClient *client, unsigned char channel)
+{
+	bool res = true;
+
+	CAPDFactory *factory = CAPDFactory::GetAPDFactory();
+	CClientContext *clientContext = factory->GetClientContext();
+	CEvent *event = factory->GetEvent();
+	clientContext->pEvent = event;
+	CWaitForEvents *wait = factory->GetWaitForEvents();
+	wait->Add(event);
+
+	DONTSENDTS cmd_dontsendTS;
+	cmd_dontsendTS.instruction.Prepare(channel);
+
+	client->SendData(&cmd_dontsendTS, clientContext);
+
+	if (wait->WaitAll(5000) != CWaitForEvents::WR_OK)
+	{
+		res = false;
+	};
+
+	delete wait;
+	delete event;
+	delete clientContext;
+
+	return res;
+}
+
+
+bool ShutupAllTS(CAPDClient *client)
+{
+	bool res = true;
+
+	CAPDFactory *factory = CAPDFactory::GetAPDFactory();
+	CClientContext *clientContext = factory->GetClientContext();
+	CEvent *event = factory->GetEvent();
+	clientContext->pEvent = event;
+	CWaitForEvents *wait = factory->GetWaitForEvents();
+	wait->Add(event);
+
+	BULKCMD cmd;
+	for (int channel = 1; channel <=4; channel++)
+	{
+		DONTSENDTS cmd_dontsendTS;
+		cmd_dontsendTS.instruction.Prepare(channel);
+		cmd.Add(cmd_dontsendTS);
+	}
+
+	client->SendData(&cmd, clientContext);
+
+	if (wait->WaitAll(5000) != CWaitForEvents::WR_OK)
+	{
+		res = false;
+	};
+
+	delete wait;
+	delete event;
+	delete clientContext;
+
+	return res;
+}
+
+bool SetIP(CAPDClient *client, unsigned long ip_h)
+{
+	bool res = true;
+
+	CAPDFactory *factory = CAPDFactory::GetAPDFactory();
+	CClientContext *clientContext = factory->GetClientContext();
+	CEvent *event = factory->GetEvent();
+	clientContext->pEvent = event;
+	CWaitForEvents *wait = factory->GetWaitForEvents();
+	wait->Add(event);
+
+	SETIP cmd;
+	cmd.instruction.Prepare(ip_h);
+/*
+	unsigned char *p = (unsigned char *)&cmd;
+	for (int i = 0; i < 48; i++)
+	{
+		if ((i % 16) == 0) printf("\n");
+		printf("%02X ", *p);
+		p++;
+	}
+*/
+	client->SendData(&cmd, clientContext);
+
+	if (wait->WaitAll(5000) != CWaitForEvents::WR_OK)
+	{
+		res = false;
+	};
+
+	delete wait;
+	delete event;
+	delete clientContext;
+
+	return res;
+}
